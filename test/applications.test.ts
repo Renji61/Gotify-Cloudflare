@@ -157,7 +157,7 @@ test('delete', async () => {
   assert.equal(res.status, 200);
   assert.equal(res.text, '');
   assert.equal(h.store.getApplicationById(app.id), null);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM messages')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM messages')!.n, 0);
   assert.equal((await h.call('DELETE', `/application/${app.id}`, h.admin)).status, 404);
   assert.equal((await h.call('DELETE', '/application/abc', h.admin)).status, 400);
 });
@@ -230,14 +230,14 @@ test('images: upload, serve, replace, remove', async () => {
   img = await h.call('GET', `/${second}`);
   assert.equal(img.status, 200);
   assert.equal(img.headers.get('content-type'), 'image/jpeg');
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM application_images')!.n, 1);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM application_images')!.n, 1);
 
   // remove
   res = await h.call('DELETE', `/application/${app.id}/image`, h.admin);
   assert.equal(res.status, 200);
   assert.equal(res.json.image, 'static/defaultapp.png');
   assert.equal((await h.call('GET', `/${second}`)).status, 404);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM application_images')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM application_images')!.n, 0);
   res = await h.call('DELETE', `/application/${app.id}/image`, h.admin);
   assert.equal(res.status, 400);
   assert.equal(res.json.errorDescription, `app with id ${app.id} does not have a customized image`);
@@ -247,9 +247,9 @@ test('images: deleting the application deletes its image', async () => {
   const h = await makeServer();
   const app = await createApp(h, h.admin, 'a');
   await h.call('POST', `/application/${app.id}/image`, { ...h.admin, body: multipartBody('image.gif', Uint8Array.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 1, 0, 1, 0])) });
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM application_images')!.n, 1);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM application_images')!.n, 1);
   await h.call('DELETE', `/application/${app.id}`, h.admin);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM application_images')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM application_images')!.n, 0);
 });
 
 test('images: upload errors', async () => {
@@ -290,7 +290,7 @@ test('images: upload errors', async () => {
   res = await h.call('POST', '/application/55/image', { ...h.admin, body: multipartBody('i.png', PNG) });
   assert.equal(res.status, 404);
   assert.equal(res.json.errorDescription, "app with id 55 doesn't exists");
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM application_images')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM application_images')!.n, 0);
 });
 
 test('images: size limit answers 400 with a message the UI can show', async () => {

@@ -20,7 +20,7 @@ Workers and serves the official, unmodified Gotify web UI.
 
 ## Development
 
-- `npm install`, then `npm test` (needs Node 22.13+) and `npm run typecheck`.
+- `npm install`, then `npm test` (needs Node 22.13+) and `npm run typecheck`. The latter checks `src/` against the Workers types only, then `src/` and `test/` together with the Node types added (`tsconfig.test.json`).
 - `npm run prepare-ui` builds the web UI into `public/`. The first run takes a few minutes.
 - `npm run dev` runs the app locally at http://localhost:8787. Copy
   `.dev.vars.example` to `.dev.vars`, set `GOTIFY_DEFAULTUSER_PASS`, and add

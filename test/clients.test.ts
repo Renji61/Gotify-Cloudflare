@@ -139,14 +139,14 @@ test('maintenance deletes expired clients and keeps connected ones alive', async
   // four minutes: nothing to do yet
   h.clock.now = T0 + 4 * 60_000;
   h.server.runMaintenance();
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM clients')!.n, 3);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM clients')!.n, 3);
   // the connected client's expiry was pushed out
-  assert.equal(h.sql.first('SELECT expires_at FROM clients WHERE id = ?', connected.id)!.expires_at, T0 + 4 * 60_000 + 600_000);
+  assert.equal(h.sql.first<{ expires_at: number }>('SELECT expires_at FROM clients WHERE id = ?', connected.id)!.expires_at, T0 + 4 * 60_000 + 600_000);
 
   // 11 minutes: the idle client is gone
   h.clock.now = T0 + 11 * 60_000;
   h.server.runMaintenance();
-  const rows = h.sql.all('SELECT id FROM clients ORDER BY id').map((r) => r.id);
+  const rows = h.sql.all<{ id: number }>('SELECT id FROM clients ORDER BY id').map((r) => r.id);
   assert.deepEqual(rows, [connected.id, forever.id]);
   assert.equal((await h.call('GET', '/current/user', { key: idle.token })).status, 401);
   assert.equal((await h.call('GET', '/current/user', { key: connected.token })).status, 200);
@@ -160,7 +160,7 @@ test('maintenance deletes an expired client whose socket has already dropped', a
   h.hub.sockets[0].closed = true;
   h.clock.now = T0 + 120_000;
   h.server.runMaintenance();
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM clients')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM clients')!.n, 0);
 });
 
 test('alarm schedule: only while something needs it', async () => {
@@ -207,7 +207,7 @@ test('huge durations: expiry is rejected with a validation error and nothing is 
   }
   let res = await h.call('POST', '/client', { ...h.admin, form: { name: 'huge', expiresAfterInactivitySeconds: '10000000000000' } });
   assert.equal(res.status, 400);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM clients')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM clients')!.n, 0);
 
   // the largest allowed value works and everything stays usable
   res = await h.call('POST', '/client', { ...h.admin, json: { name: 'max', expiresAfterInactivitySeconds: MAX } });

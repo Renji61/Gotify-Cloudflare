@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import { GotifyServer } from '../src/server.ts';
-import { defaultConfig } from '../src/config.ts';
+import { defaultConfig, type GotifyConfig } from '../src/config.ts';
 import { migrate } from '../src/storage.ts';
 import { BASE, createApp, FakeHub, makeServer, NodeSql } from './harness.ts';
 
@@ -346,10 +346,11 @@ test('the default body limit is 2 MiB', async () => {
 });
 
 test('invalid regular expressions in the configuration make every request a 500', async () => {
-  for (const [setting, overrides] of [
+  const cases: [string, Partial<GotifyConfig>][] = [
     ['GOTIFY_SERVER_STREAM_ALLOWEDORIGINS', { streamAllowedOrigins: ['^ok$', '('] }],
     ['GOTIFY_SERVER_CORS_ALLOWORIGINS', { corsAllowOrigins: ['^ok$', '[a-'] }],
-  ] as const) {
+  ];
+  for (const [setting, overrides] of cases) {
     const h = await makeServer(overrides);
     for (const [method, path, opts] of [
       ['GET', '/version', {}],

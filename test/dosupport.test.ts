@@ -59,7 +59,7 @@ test('warnOnce logs a key once', () => {
 
 function fakeStorage(initial: number | null, fail?: 'get' | 'set') {
   const calls: string[] = [];
-  const st = {
+  const st: AlarmStorage & { alarm: number | null; calls: string[] } = {
     alarm: initial,
     calls,
     async getAlarm() {
@@ -75,7 +75,7 @@ function fakeStorage(initial: number | null, fail?: 'get' | 'set') {
       calls.push('delete');
       st.alarm = null;
     },
-  } satisfies AlarmStorage & { alarm: number | null; calls: string[] };
+  };
   return st;
 }
 

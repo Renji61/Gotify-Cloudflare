@@ -195,6 +195,6 @@ export const PNG = Uint8Array.from(
 
 export function multipartBody(fileName: string, bytes: Uint8Array, fieldName = 'file') {
   const form = new FormData();
-  form.append(fieldName, new Blob([bytes as BlobPart], { type: 'application/octet-stream' }), fileName);
+  form.append(fieldName, new Blob([bytes], { type: 'application/octet-stream' }), fileName);
   return form;
 }

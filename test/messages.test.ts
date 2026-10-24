@@ -105,7 +105,7 @@ test('create: failures', async () => {
   assert.equal(res.json.errorDescription, 'strconv.ParseInt: parsing "abc": invalid syntax');
   res = await h.call('POST', '/message', { key: app.token, json: { message: 'm', extras: 'nope' } });
   assert.equal(res.status, 400);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM messages')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM messages')!.n, 0);
 });
 
 test('create: extras nested thousands of levels deep are a 400, nothing is stored', async () => {
@@ -115,7 +115,7 @@ test('create: extras nested thousands of levels deep are a 400, nothing is store
   const body = '{"message":"m","extras":' + '{"a":'.repeat(n) + '1' + '}'.repeat(n) + '}';
   const res = await h.call('POST', '/message', { key: app.token, body, headers: { 'content-type': 'application/json' } });
   assert.equal(res.status, 400);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM messages')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM messages')!.n, 0);
 });
 
 test('list: newest first, paging with next links', async () => {

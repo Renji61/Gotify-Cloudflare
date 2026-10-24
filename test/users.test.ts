@@ -206,9 +206,9 @@ test('delete user removes everything it owns and closes its sockets', async () =
   assert.equal(res.text, '');
   assert.equal(h.store.getUserById(user.id), null);
   assert.equal(h.hub.open(user.id).length, 0);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM applications')!.n, 0);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM messages')!.n, 0);
-  assert.equal(h.sql.first('SELECT COUNT(*) AS n FROM clients')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM applications')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM messages')!.n, 0);
+  assert.equal(h.sql.first<{ n: number }>('SELECT COUNT(*) AS n FROM clients')!.n, 0);
   assert.equal(h.store.imageExists(imageName), false);
   assert.equal((await h.call('GET', '/current/user', { basic })).status, 401);
 });

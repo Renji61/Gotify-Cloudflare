@@ -11,7 +11,16 @@
   "bugs": {
     "url": "https://github.com/Renji61/Gotify-Cloudflare/issues"
   },
-  "keywords": ["gotify", "push-notifications", "notifications", "cloudflare-workers", "durable-objects", "self-hosted", "serverless", "websocket"],
+  "keywords": [
+    "gotify",
+    "push-notifications",
+    "notifications",
+    "cloudflare-workers",
+    "durable-objects",
+    "self-hosted",
+    "serverless",
+    "websocket"
+  ],
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -27,10 +36,11 @@
     "dev": "npm run prepare-ui && wrangler dev",
     "deploy": "npm run prepare-ui && wrangler deploy",
     "test": "tsx --test test/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261023.1",
+    "@types/node": "^22.20.5",
     "tsx": "^4.23.15",
     "typescript": "^5.9.0",
     "wrangler": "^4.152.0"
