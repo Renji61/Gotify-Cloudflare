@@ -1,0 +1,95 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gotify",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-09-01",
+
+  // A deploy gets a *.workers.dev URL. Preview URLs stay off.
+  "workers_dev": true,
+  "preview_urls": false,
+  // To use your own domain instead (then set "workers_dev" to false):
+  // "routes": [{ "pattern": "notify.example.com", "custom_domain": true }],
+
+  // The official Gotify web UI, built into ./public by `npm run prepare-ui`.
+  // /static/* and /manifest.json are served straight from the assets, without waking the Worker.
+  // The Worker only runs first for "/" and "/index.html": it fills the runtime config into
+  // index.html (an asset hit for /index.html would return the file with %CONFIG% unreplaced).
+  // Every other path (the API, /stream, /image/*, /health, ...) matches no asset, and a request
+  // that matches no asset is handed to the Worker, which forwards it to the Durable Object;
+  // "not_found_handling": "none" adds no 404 or index.html fallback on top of that.
+  // "html_handling": "none" stops /index.html from being redirected to /.
+  // (Per the Workers static assets docs: with an array, other requests follow the default
+  // asset-first behaviour. The docs do not spell out the combination with "none"; if API
+  // calls ever answer with an asset 404 instead, use "run_worker_first": true.)
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "run_worker_first": ["/", "/index.html"]
+  },
+
+  // One SQLite-backed Durable Object holds all data: users, applications, clients,
+  // messages and application images. It is also the WebSocket hub for /stream.
+  "durable_objects": {
+    "bindings": [{ "name": "GOTIFY", "class_name": "GotifyStore" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["GotifyStore"] }],
+
+  // Settings. They use the names and formats of upstream's environment variables.
+  // Every value is a string. Anything left out has the default shown.
+  //
+  // Secret (do NOT put it in this file): the password of the administrator that is
+  // created on first start, when the database has no users yet.
+  //   npx wrangler secret put GOTIFY_DEFAULTUSER_PASS
+  // For `wrangler dev` put it in a .dev.vars file instead:
+  //   GOTIFY_DEFAULTUSER_PASS=choose-a-password
+  // If it is not set, no administrator is created (there is no default password).
+  //
+  // Secret, optional (deliberate divergence from upstream): enables POST /_import, the one-time
+  // import of an existing Gotify database (see README "Migrating from a self-hosted Gotify").
+  // It replaces ALL data. Delete the secret afterwards and the route disappears.
+  //   npx wrangler secret put GOTIFY_IMPORT_TOKEN
+  "vars": {
+    // Name of that first administrator. Default: "admin".
+    "GOTIFY_DEFAULTUSER_NAME": "admin",
+
+    // "true" lets anyone create a (non-admin) user with POST /user. Default: "false".
+    "GOTIFY_REGISTRATION": "false",
+
+    // bcrypt cost for new passwords (4 to 31). Default: "10".
+    "GOTIFY_PASSSTRENGTH": "10"
+
+    // Session cookie "Secure" flag. Default: "true" (workers.dev and custom domains are
+    // always HTTPS; upstream's default is "false"). For `wrangler dev` over plain http,
+    // Safari refuses Secure cookies: put GOTIFY_SERVER_SECURECOOKIE=false in .dev.vars.
+    // "GOTIFY_SERVER_SECURECOOKIE": "true",
+
+    // Comma separated regular expressions. A WebSocket (/stream) request from another
+    // origin is accepted when the origin's host name (lower case, no port) matches one.
+    // Same-host origins are always accepted. Default: none.
+    // "GOTIFY_SERVER_STREAM_ALLOWEDORIGINS": "^example\\.com$,^.*\\.example\\.org$",
+
+    // CORS. Comma separated. Origins are regular expressions (unanchored, matched
+    // against the lower-cased Origin). Empty means upstream's behaviour: browsers on
+    // another origin are refused, and preflight answers carry no Allow-Methods /
+    // Allow-Headers. Requests without an Origin header (the Android app, curl) and
+    // requests from the same host (the bundled web UI) are never affected.
+    // "GOTIFY_SERVER_CORS_ALLOWORIGINS": "^https://app\\.example\\.com$",
+    // "GOTIFY_SERVER_CORS_ALLOWMETHODS": "GET,POST,DELETE,OPTIONS,PUT",
+    // "GOTIFY_SERVER_CORS_ALLOWHEADERS": "X-Gotify-Key,Authorization,Content-Type",
+
+    // Largest request body in bytes. Default: "2097152" (2 MiB). "0" turns the limit off.
+    // Application images are limited to 1.5 MiB regardless, because that is what a
+    // Durable Object SQLite row can hold.
+    // "GOTIFY_SERVER_MAXBODYBYTES": "2097152",
+
+    // Extra headers on every API response, as a JSON object. An empty value removes a
+    // header. Default: none.
+    // "GOTIFY_SERVER_RESPONSEHEADERS": "{\"X-Custom-Header\":\"custom value\"}"
+  },
+
+  // Workers Logs would record every request URL, and /stream?token=... carries a client token
+  // in its query string. Invocation logs are therefore switched off; console output (errors) is still kept.
+  "observability": { "enabled": true, "logs": { "invocation_logs": false } }
+}

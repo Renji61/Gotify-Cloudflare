@@ -1,0 +1,45 @@
+{
+  "name": "gotify-cloudflare",
+  "version": "3.1.1",
+  "private": true,
+  "description": "Gotify server (v3.1.1) ported to Cloudflare Workers and a SQLite Durable Object. Works with the official web UI and Android app.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Renji61/Gotify-Cloudflare.git"
+  },
+  "homepage": "https://github.com/Renji61/Gotify-Cloudflare#readme",
+  "bugs": {
+    "url": "https://github.com/Renji61/Gotify-Cloudflare/issues"
+  },
+  "keywords": ["gotify", "push-notifications", "notifications", "cloudflare-workers", "durable-objects", "self-hosted", "serverless", "websocket"],
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "gotify": {
+    "tag": "v3.1.1",
+    "repo": "https://github.com/gotify/server.git"
+  },
+  "scripts": {
+    "prepare-ui": "node scripts/prepare-ui.mjs",
+    "build": "npm run prepare-ui",
+    "dev": "npm run prepare-ui && wrangler dev",
+    "deploy": "npm run prepare-ui && wrangler deploy",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261023.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.0",
+    "wrangler": "^4.152.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "GOTIFY_DEFAULTUSER_PASS": {
+        "description": "The password of the first administrator (the user name comes from GOTIFY_DEFAULTUSER_NAME, default \"admin\"). It is used only on first start, when no users exist. Without it no administrator is created and nobody can log in: there is no admin/admin default. Pick something long and unique, e.g. the output of `openssl rand -base64 24` (at most 72 bytes). It is ignored once users exist."
+      }
+    }
+  }
+}

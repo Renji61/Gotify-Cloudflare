@@ -1,0 +1,8 @@
+# Secrets and local settings for this Worker. Copy to .dev.vars for `npm run dev`;
+# in production set secrets with `npx wrangler secret put <NAME>` (the Deploy to
+# Cloudflare button prompts for them).
+
+# Password of the first administrator (user name: GOTIFY_DEFAULTUSER_NAME, default
+# "admin"). Created only on first start, when no users exist; without it nobody can
+# log in. Ignored once users exist. Use a long, unique value (at most 72 bytes).
+GOTIFY_DEFAULTUSER_PASS=
